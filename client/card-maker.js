@@ -57,6 +57,18 @@ export default class CardMaker extends React.Component {
         let nrCardsY = (pageHeight - (2 * pagePadding)) / (cardHeight + cardBottomOffset)
         nrCardsY = Math.floor(nrCardsY)
 
+        let formattingData= {
+            pageWidth: 210,
+            pageHeight: 297,
+            pagePadding: 7,
+            cardWidth: 63,
+            cardHeight: 88,
+            cardRightOffset: 1,
+            cardBottomOffset: 1,
+            nrCardsX: nrCardsX,
+            nrCardsY: nrCardsY,
+        }
+
         for (let j = 0; j < nrCardsY; j++) {
             for (let i = 0; i < nrCardsX; i++) {
                 let index = i + j * nrCardsX
@@ -66,6 +78,8 @@ export default class CardMaker extends React.Component {
                 this.createBasicCard(doc, totalXOffest, totalYOffest, cardWidth, cardHeight)
             }
         }
+
+        this.drawCutLines(doc, formattingData, false)
 
         doc.addPage()
 
@@ -91,20 +105,47 @@ export default class CardMaker extends React.Component {
             }
         }
 
+        this.drawCutLines(doc, formattingData, true)
+
 
         doc.save('cards.pdf')
+    }
+
+    drawCutLines = (doc, formattingData, isBackPage = false) => {
+
+        // draw verical lines
+        for (let i = 0; i < formattingData.nrCardsX; i++) {
+            let totalXOffest = formattingData.pagePadding + i * (formattingData.cardWidth + formattingData.cardRightOffset)
+            if (isBackPage) {
+                let extraXOffset = formattingData.pageWidth - formattingData.pagePadding - (formattingData.nrCardsX * (formattingData.cardWidth + formattingData.cardRightOffset))
+                totalXOffest = extraXOffset + i * (formattingData.cardWidth + formattingData.cardRightOffset)
+            }
+
+            doc.line(totalXOffest, 0, totalXOffest, formattingData.pageHeight)
+            doc.line(totalXOffest + formattingData.cardWidth, 0, totalXOffest + formattingData.cardWidth, formattingData.pageHeight)
+        }
+
+        // draw horizontal lines
+        for (let i = 0; i < formattingData.nrCardsY; i++) {
+            let totalYOffest = formattingData.pagePadding + i * (formattingData.cardHeight + formattingData.cardBottomOffset)
+            let totalHeight = formattingData.nrCardsY * (formattingData.cardHeight + formattingData.cardBottomOffset) + formattingData.pagePadding
+
+            doc.line(0, totalYOffest, formattingData.pageWidth, totalYOffest)
+            doc.line(0, totalYOffest + formattingData.cardHeight, formattingData.pageWidth, totalYOffest + formattingData.cardHeight)
+        }
+
     }
 
     createBasicCard = (doc, x, y, width, height, text = 'Hello World') => {
         let borderWidth = 1
 
-        doc.setFillColor(0, 0, 0)
-        doc.rect(x, y, width, height, 'F');
+        // doc.setFillColor(0, 0, 0)
+        // doc.rect(x, y, width, height, 'F');
+        //
+        // doc.setFillColor(255, 255, 255)
+        // doc.rect(x + borderWidth, y + borderWidth, width - 2 * borderWidth, height - 2 * borderWidth, 'F');
 
-        doc.setFillColor(255, 255, 255)
-        doc.rect(x + borderWidth, y + borderWidth, width - 2 * borderWidth, height - 2 * borderWidth, 'F');
-
-        doc.setFontSize(9)
+        doc.setFontSize(8)
         doc.text(text, x + 3, y + 10, {
             maxWidth: width - 10
         })
